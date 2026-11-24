@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Benzabet Ultimate</title>
+<style>
+:root{color-scheme:dark;--ink:#edf6f6;--muted:#b9c8ce;--line:#34464d;--cyan:#18e4e9}
+*{box-sizing:border-box}
+body{margin:0;background:#080e12;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:min(100% - 32px,540px);margin:clamp(36px,11vh,130px) auto}
+header{display:flex;align-items:center;gap:14px;margin:0 0 26px}
+.brand{font:700 24px/1.1 Georgia,serif;letter-spacing:.035em;color:#f2f6fa}
+.tier{border-left:1px solid #46555c;padding-left:14px;color:var(--cyan);font-size:12px;font-weight:750;letter-spacing:.2em}
+.card{background:#111b20;border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:16px;padding:clamp(23px,5vw,38px)}
+h1{margin:0 0 12px;line-height:1.12;font-size:clamp(28px,5vw,40px);letter-spacing:-.045em}
+p{color:var(--muted);margin:0}
+strong{color:var(--ink)}
+button{margin-top:20px;font:inherit;font-weight:700;cursor:pointer;color:#000;background:var(--cyan);border:0;border-radius:10px;min-height:48px;padding:10px 22px}
+button:hover{background:#66f2f5}
+button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<header aria-label="Benzabet Ultimate"><span class="brand">BENZABET</span><span class="tier">ULTIMATE</span></header>
+<section class="card">
+<h1 id="title">Benzabet Ultimate</h1>
+<p id="text">Use the buttons in your invitation email to answer.</p>
+<button type="button" id="go" hidden>Unsubscribe</button>
+</section>
+</main>
+<script>
+(function () {
+  // Where answers are recorded: the Google Sheet's script. Players never see this address.
+  var RECORD_URL = 'https://script.google.com/macros/s/AKfycbxUNRhIGC0sv59LzfFwYGaQBRSEH0HBKqqA6Xyf7wePKTnGXrUMwQQiDKWpfW4Khdml/exec';
+  var LABELS = { claim: 'Claim my spot', maybe: 'Maybe', no: 'No' };
+
+  var params = new URLSearchParams(location.search);
+  var token = params.get('t') || '';
+  var action = params.get('a') || '';
+  var title = document.getElementById('title');
+  var text = document.getElementById('text');
+  var button = document.getElementById('go');
+  if (!/^[0-9a-f]{32}$/.test(token)) return;
+
+  // Sent without cookies, so it works the same whether or not the player is signed in to Google.
+  function record(what, triesLeft) {
+    fetch(RECORD_URL + '?t=' + token + '&a=' + what, {
+      method: 'POST', mode: 'no-cors', credentials: 'omit', cache: 'no-store', keepalive: true, body: 'r=1'
+    }).catch(function () {
+      if (triesLeft > 1) setTimeout(function () { record(what, triesLeft - 1); }, 1500);
+    });
+  }
+
+  // Mail security scanners open links without showing them to anyone. Record only once a
+  // person can actually see the page, so a scanner does not answer for the player.
+  function whenSeen(run) {
+    if (navigator.webdriver) return;
+    var done = false;
+    function check() {
+      if (done || document.visibilityState !== 'visible') return;
+      done = true;
+      setTimeout(run, 300);
+    }
+    document.addEventListener('visibilitychange', check);
+    check();
+  }
+
+  if (LABELS[action]) {
+    title.textContent = 'Thank you for answering.';
+    text.textContent = '';
+    text.appendChild(document.createTextNode('Your answer: '));
+    var answer = document.createElement('strong');
+    answer.textContent = LABELS[action];
+    text.appendChild(answer);
+    text.appendChild(document.createTextNode('.'));
+    whenSeen(function () { record(action, 3); });
+  } else if (action === 'unsub') {
+    title.textContent = 'Unsubscribe?';
+    text.textContent = 'Stop Benzabet Ultimate emails to this address.';
+    button.hidden = false;
+    button.addEventListener('click', function () {
+      button.hidden = true;
+      title.textContent = 'You’re unsubscribed.';
+      text.textContent = 'You won’t get more Benzabet Ultimate emails at this address.';
+      record('unsub', 3);
+    });
+  }
+})();
+</script>
+</body>
+</html>
