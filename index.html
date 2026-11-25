@@ -2,94 +2,370 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050b10">
 <title>Benzabet Ultimate</title>
 <style>
-:root{color-scheme:dark;--ink:#edf6f6;--muted:#b9c8ce;--line:#34464d;--cyan:#18e4e9}
+:root{
+  color-scheme:dark;
+  --cyan:#17e1f1; --edge:#0bf3fb;
+  --ink:#ffffff; --text:#c6d1d8; --label:#a9b4bc; --dim:#7d8b96;
+  --line:rgba(140,175,195,.24);
+}
 *{box-sizing:border-box}
-body{margin:0;background:#080e12;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{width:min(100% - 32px,540px);margin:clamp(36px,11vh,130px) auto}
-header{display:flex;align-items:center;gap:14px;margin:0 0 26px}
-.brand{font:700 24px/1.1 Georgia,serif;letter-spacing:.035em;color:#f2f6fa}
-.tier{border-left:1px solid #46555c;padding-left:14px;color:var(--cyan);font-size:12px;font-weight:750;letter-spacing:.2em}
-.card{background:#111b20;border:1px solid var(--line);border-top:3px solid var(--cyan);border-radius:16px;padding:clamp(23px,5vw,38px)}
-h1{margin:0 0 12px;line-height:1.12;font-size:clamp(28px,5vw,40px);letter-spacing:-.045em}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100vh; min-height:100dvh; background:#050b10; color:var(--ink);
+  font:16px/1.4 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; text-align:center;
+}
+/* The lobby, blurred and darkened, as if the page had opened over the site.
+   A fixed full-height box: the picture keeps one size when the phone's address bar slides away. */
+.backdrop{position:fixed; top:0; left:0; width:100%; height:100vh; height:100lvh; z-index:-1;
+  background:#050b10 url(img/bg-mobile.jpg) center top/cover no-repeat}
+.backdrop::after{content:""; position:absolute; top:0; right:0; bottom:0; left:0;
+  background:linear-gradient(180deg,rgba(3,8,12,.62) 0,rgba(3,8,12,.58) 21%,rgba(3,8,12,.16) 30%,rgba(3,8,12,.20) 50%,rgba(3,8,12,.50) 100%)}
+@media (min-aspect-ratio:1/1){
+  .backdrop{background-image:url(img/bg-desktop.jpg); background-position:center}
+  .backdrop::after{background:linear-gradient(180deg,rgba(3,8,12,.42) 0,rgba(3,8,12,.22) 34%,rgba(3,8,12,.48) 100%)}
+}
+
+main{
+  min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center;
+  padding:44px 20px 24px; padding:max(28px,7vh) 20px max(24px,env(safe-area-inset-bottom));
+}
+.brand{display:block; line-height:0}
+.logo{display:block; width:60vw; max-width:236px; height:auto; filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
+  color:#fff; font:italic 800 26px/1.6 Arial,sans-serif}
+.pill{
+  margin-top:22px; margin-top:clamp(18px,3.2vh,28px); padding:4px 11px; border-radius:999px;
+  font-size:12px; line-height:1.2; font-weight:700; letter-spacing:.06em; color:var(--cyan);
+  background:radial-gradient(60% 140% at 50% 50%,rgba(23,225,241,.20),rgba(23,225,241,.05) 75%),rgba(5,14,22,.55);
+  border:1px solid rgba(120,160,180,.38);
+  box-shadow:inset 0 1px 0 rgba(23,225,241,.75), inset 0 -1px 0 rgba(23,225,241,.75), 0 0 14px -2px rgba(23,225,241,.35);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+}
+.card{
+  position:relative; margin-top:32px; margin-top:clamp(26px,5vh,46px); width:80.5vw; max-width:400px;
+  padding:30px 28px 24px; padding:30px clamp(20px,7.8vw,36px) 24px; border-radius:6px;
+  background:
+    linear-gradient(180deg,rgba(23,225,241,.25) 0,rgba(23,225,241,.15) 8px,rgba(23,225,241,.08) 16px,rgba(23,225,241,0) 30px),
+    linear-gradient(180deg,rgba(10,24,37,.60) 0,rgba(10,24,37,.64) 45%,rgba(9,21,33,.76) 100%);
+  border:1px solid var(--line); border-top:4px solid var(--edge);
+  box-shadow:0 -10px 34px -10px rgba(23,225,241,.55), 0 28px 70px rgba(0,0,0,.62);
+  -webkit-backdrop-filter:blur(10px) saturate(.75); backdrop-filter:blur(10px) saturate(.75);
+}
+.mark{display:block; width:47px; height:47px; margin:0 auto 14px; filter:drop-shadow(0 0 12px rgba(23,225,241,.6))}
+h1{
+  margin:0; font-size:28px; font-size:clamp(24px,7.6vw,30px); font-weight:700; line-height:1.15;
+  letter-spacing:-.012em; overflow-wrap:break-word; text-shadow:0 2px 14px rgba(0,0,0,.45);
+}
 h1:focus{outline:none}
-p{color:var(--muted);margin:0}
-strong{color:var(--ink)}
-button{margin-top:20px;font:inherit;font-weight:700;cursor:pointer;color:#000;background:var(--cyan);border:0;border-radius:10px;min-height:48px;padding:10px 22px}
-button:hover{background:#66f2f5}
-button:focus-visible{outline:3px solid #fff;outline-offset:4px}
-[hidden]{display:none}
+.choice{
+  margin:20px auto 0; padding:9px 14px 10px; border-radius:6px;
+  background:radial-gradient(70% 60% at 50% 0,rgba(160,200,225,.14),rgba(160,200,225,0) 70%),
+    linear-gradient(180deg,rgba(150,185,210,.12),rgba(150,185,210,.085));
+  border:1px solid rgba(140,175,200,.30); box-shadow:inset 0 1px 0 rgba(190,220,240,.16);
+}
+.choice small{display:block; font-size:12.5px; font-weight:400; letter-spacing:.01em; line-height:1.3; color:var(--label); text-transform:uppercase}
+.choice strong{display:block; margin-top:2px; font-size:19px; font-weight:700; line-height:1.15; color:var(--cyan)}
+.note{margin:17px auto 0; max-width:31ch; font-size:14.5px; line-height:1.3; color:var(--text); text-wrap:pretty}
+.note b{font-weight:700; color:var(--ink)}
+.note b.hi{color:var(--cyan); text-shadow:0 0 14px rgba(23,225,241,.45)}
+.note .lead{display:block; font-size:17px; line-height:1.25; color:var(--ink)}
+.note .offer{display:block; margin:2px 0 8px; font-size:17px; line-height:1.25; color:var(--ink)}
+.note.quiet{margin-top:8px; color:var(--dim)}
+.link{
+  position:relative; display:inline-block; margin-top:0; padding:3px 8px 4px; border:0; background:none; cursor:pointer;
+  font:inherit; font-size:14.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
+}
+.link::after{content:""; position:absolute; top:-9px; right:-12px; bottom:-9px; left:-12px}   /* a finger-sized target */
+.link:hover{color:var(--ink)}
+.link:focus-visible{outline:2px solid var(--cyan); outline-offset:2px; border-radius:6px}
+#keep::after{top:-6px}   /* its target stops at the bottom edge of the button above it */
+/* While an answer is on its way the card already has its final size: the tick and the
+   "Change my answer" line keep their place unseen, and the note holds the room its text needs. */
+.card.saving .mark,.card.saving #change{visibility:hidden}
+.note.pending{position:relative}
+.note .now{position:absolute; top:0; left:0; right:0}
+.note .room{visibility:hidden}
+.options{display:grid; gap:10px; margin-top:18px}
+.option{
+  min-height:48px; padding:8px 14px; border-radius:6px; cursor:pointer; font:inherit; font-size:16px; font-weight:700; line-height:1.2;
+  color:var(--ink); background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.38);
+}
+.option.main{color:#000; background:var(--cyan); border-color:var(--cyan)}
+.option[aria-pressed="true"]{border-color:var(--cyan); box-shadow:0 0 0 2px var(--cyan)}
+.option.main[aria-pressed="true"]{box-shadow:0 0 0 2px #050b10, 0 0 0 4px var(--cyan)}
+.option[aria-pressed="true"]::after{content:"Current answer"; display:block; margin-top:1px; font-size:11px; font-weight:500; letter-spacing:.05em; text-transform:uppercase}
+.option:disabled{opacity:.55; cursor:default}
+.option:focus-visible{outline:2px solid #fff; outline-offset:3px}
+.card.choosing .mark{display:none}
+.chooser-gap{height:6px}
+.foot{margin:16px 0 0; font-size:10px; font-size:clamp(9px,2.7vw,10px); letter-spacing:.26em; color:#a5b3bd; text-transform:uppercase;
+  text-shadow:0 1px 2px rgba(0,0,0,.9), 0 0 12px rgba(3,8,12,.95), 0 0 12px rgba(3,8,12,.95)}
+.legal{margin:9px auto 0; max-width:62ch; font-size:10.5px; line-height:1.35; color:#93a1ab;
+  text-shadow:0 1px 2px rgba(0,0,0,.9), 0 0 12px rgba(3,8,12,.95), 0 0 12px rgba(3,8,12,.95)}
+.sr{position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+[hidden]{display:none !important}
+
+@media (max-width:340px){ .foot{letter-spacing:.18em} }
+@media (max-height:520px){
+  main{padding-top:16px} .logo{width:180px} .pill{margin-top:10px}
+  .card{margin-top:14px; padding-top:20px; padding-bottom:20px} .mark{width:36px; height:36px; margin-bottom:10px} h1{font-size:26px}
+}
+/* PC: the same card, a size larger, in the middle of the screen */
+@media (min-width:700px){
+  main{justify-content:center; padding-top:32px}
+  .logo{width:280px; max-width:none}
+  .pill{font-size:13px; padding:5px 13px}
+  .card{width:480px; max-width:none; padding:42px 50px 34px; border-radius:8px}
+  .mark{width:54px; height:54px; margin-bottom:22px}
+  h1{font-size:40px}
+  .choice{margin-top:26px; padding:13px 16px 14px}
+  .choice small{font-size:13px}
+  .choice strong{font-size:22px}
+  .note{font-size:16.5px; max-width:38ch; margin-top:22px}
+  .note .lead,.note .offer{font-size:20px}
+  .note .offer{margin-bottom:10px}
+  .link{font-size:16.5px; margin-top:4px}
+  .foot{font-size:11.5px; margin-top:24px}
+  .legal{font-size:11.5px; max-width:70ch}
+}
+@media (min-width:700px) and (max-height:800px){
+  main{padding-top:18px; padding-bottom:14px}
+  .logo{width:230px} .pill{margin-top:14px}
+  .card{margin-top:20px; padding:28px 46px 24px}
+  .mark{width:46px; height:46px; margin-bottom:14px}
+  h1{font-size:34px}
+  .choice{margin-top:18px} .note{margin-top:16px} .foot{margin-top:14px}
+}
 </style>
-<noscript><style>#text{display:none}</style></noscript>
+<noscript><style>#text,.mark,#answered,#chooser,#unsub,#retry{display:none}</style></noscript>
 </head>
 <body>
+<div class="backdrop" aria-hidden="true"></div>
 <main>
-<header><span class="brand">BENZABET</span><span class="tier">ULTIMATE</span></header>
-<section class="card">
-<h1 id="title" tabindex="-1">Benzabet Ultimate</h1>
-<p id="text">Use the buttons in your invitation email to answer.</p>
-<noscript><p>Your answer could not be saved because scripts are switched off in this browser. Please open the link in another browser.</p></noscript>
-<button type="button" id="go" hidden>Unsubscribe</button>
-</section>
+  <div class="brand">
+    <picture>
+      <source srcset="img/logo.webp" type="image/webp">
+      <img class="logo" src="img/logo.png" width="720" height="140" alt="Benzabet" decoding="async" referrerpolicy="no-referrer">
+    </picture>
+  </div>
+  <div class="pill" id="pill" translate="no">INVITE ONLY</div>
+
+  <section class="card" id="card">
+    <svg class="mark" id="mark" viewBox="0 0 48 48" fill="none" aria-hidden="true" hidden>
+      <defs><linearGradient id="g" x1="10" y1="2" x2="38" y2="46" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#19f6fb"/><stop offset="1" stop-color="#0db8f3"/></linearGradient></defs>
+      <circle cx="24" cy="24" r="20.4" fill="rgba(23,225,241,.13)"/>
+      <circle cx="24" cy="24" r="21.5" stroke="url(#g) #17e1f1" stroke-width="2.5"/>
+      <path id="tick" d="M14.5 24.6l6.4 6.2 12.8-13.4" stroke="url(#g) #17e1f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1 id="title" tabindex="-1">Benzabet Ultimate</h1>
+    <p class="note" id="text">Use the buttons in your invitation email to answer.</p>
+    <noscript><p class="note">Your answer could not be saved because scripts are switched off in this browser. Please open the link in another browser.</p></noscript>
+
+    <div id="answered" hidden>
+      <div class="choice"><small>Your selection</small><strong id="picked"></strong></div>
+      <p class="note" id="note"></p>
+      <button class="link" type="button" id="change">Change my answer</button>
+      <p class="note quiet" id="reopened" hidden>To change your answer, use the buttons in your invitation email.</p>
+    </div>
+
+    <div id="chooser" hidden>
+      <p class="note" id="choosernote">Choose your answer. Your latest choice is the one we keep.</p>
+      <div class="options">
+        <button class="option main" type="button" data-a="claim">Claim my spot</button>
+        <button class="option" type="button" data-a="maybe">Maybe</button>
+        <button class="option" type="button" data-a="no">No</button>
+      </div>
+      <div class="chooser-gap"></div>
+      <button class="link" type="button" id="keep">Keep my answer</button>
+    </div>
+
+    <div id="unsub" hidden>
+      <div class="options"><button class="option main" type="button" id="unsubgo">Unsubscribe</button></div>
+    </div>
+
+    <div id="retry" hidden>
+      <div class="options"><button class="option main" type="button" id="retrygo">Try again</button></div>
+    </div>
+  </section>
+
+  <p class="foot" id="foot" translate="no">Benzabet Ultimate &bull; 1,000 VIP spots</p>
+  <p class="legal">18+ (or legal age in your jurisdiction). Gambling involves risk and can be addictive. Please play responsibly.</p>
+  <p class="sr" id="status" role="status"></p>
 </main>
+
 <script>
 (function () {
   // Where answers are recorded: the Google Sheet's script. Players never see this address.
   var RECORD_URL = 'https://script.google.com/macros/s/AKfycbxUNRhIGC0sv59LzfFwYGaQBRSEH0HBKqqA6Xyf7wePKTnGXrUMwQQiDKWpfW4Khdml/exec';
   var LABELS = { claim: 'Claim my spot', maybe: 'Maybe', no: 'No' };
   var WAITS = [1500, 3000, 6000, 12000, 24000];
+  // Fixed wording, written here: never anything typed by a visitor or taken from the address.
+  var OFFER = '<b class="hi">40% Total Rakeback</b> per month';
+  var NOTES = {
+    // a claim that got one of the spots
+    spot: '<span class="lead">Your spot is <b>reserved!</b></span><span class="offer">' + OFFER + '</span>' +
+      'Watch your inbox: your private <b>VIP launch invite</b> is coming soon!',
+    // a claim made after the spots were taken
+    wait: '<span class="lead">You are on the <b>priority waiting list</b></span><span class="offer">for ' + OFFER + '</span>' +
+      'All 1,000 spots are taken for now. We will email you the moment one opens.',
+    // a claim that was saved, when the page could not learn which of the two it is
+    claim: '<span class="lead">Your request is <b>recorded!</b></span><span class="offer">' + OFFER + '</span>' +
+      'Watch your inbox: your private <b>VIP launch update</b> is coming soon!',
+    maybe: 'Noted. No spot is held for you yet. You can still switch to <b>Claim my spot</b>, here or in your email.',
+    maybeLater: 'Noted. No spot is held for you yet. You can still switch to <b>Claim my spot</b> with the button in your email.',
+    no: 'Understood. No spot is held for you. Thank you for letting us know.'
+  };
+  var BLOCKS = ['text', 'answered', 'chooser', 'unsub', 'retry'];
 
   var params = new URLSearchParams(location.search);
   var token = params.get('t') || '';
   // A few mail apps turn the "&" in a link into "&amp;", which arrives as a parameter named "amp;a".
   var action = params.get('a') || params.get('amp;a') || '';
-  var title = document.getElementById('title');
-  var text = document.getElementById('text');
-  var button = document.getElementById('go');
+  var $ = function (id) { return document.getElementById(id); };
+  var options = document.querySelectorAll('.option[data-a]');
+
+  var current = '';    // the answer the sheet holds, as far as this page knows
+  var result = '';     // for a claim: 'spot', 'wait', or '' when the page could not learn it
+  var pending = '';    // the answer that could not be saved and can be tried again
+  var busy = false;    // one save at a time
+  var unsure = false;  // a change could not be saved or checked, so what the sheet holds is not known
+  var openedAt = 0;    // when the list of answers was opened (see the double-tap guards)
+  var closedAt = 0;    // when it was closed
 
   function known(name) { return Object.prototype.hasOwnProperty.call(LABELS, name); }
-
-  function show(heading, body, strong) {
-    title.textContent = heading;
-    document.title = heading.replace(/[.?]$/, '') + ' | Benzabet Ultimate';
-    text.textContent = body;
-    if (strong) {
-      var mark = document.createElement('strong');
-      mark.textContent = strong;
-      text.appendChild(mark);
-      text.appendChild(document.createTextNode('.'));
-    }
+  function heading(words) { $('title').textContent = words; document.title = words.replace(/[.?]$/, '') + ' | Benzabet Ultimate'; }
+  function say(words) { $('status').textContent = words; }
+  function tick(on) { if (on) $('mark').removeAttribute('hidden'); else $('mark').setAttribute('hidden', ''); }
+  function only() {
+    var keep = Array.prototype.slice.call(arguments);
+    BLOCKS.forEach(function (name) { $(name).hidden = keep.indexOf(name) < 0; });
+    $('card').className = keep.indexOf('chooser') >= 0 ? 'card choosing' : 'card';
   }
-  function thanks(name) { show('Thank you for answering.', 'Your answer: ', LABELS[name]); }
+  function each(run) { Array.prototype.forEach.call(options, run); }
+  function plain(title, line) { heading(title); $('text').textContent = line; only('text'); tick(false); }
+
+  // The thank-you card. "how" is 'saving' while the answer is on its way, then 'spot', 'wait'
+  // or '' for a saved answer. "later" is a tab opened again after the answer was saved.
+  function thanks(name, how, later) {
+    var saving = how === 'saving';
+    var words = name !== 'claim' ? NOTES[name === 'maybe' && later ? 'maybeLater' : name]
+      : NOTES[how === 'spot' || how === 'wait' ? how : saving ? 'spot' : 'claim'];
+    heading('Thank you for answering.');
+    $('picked').textContent = LABELS[name];
+    // While saving, the text that will most likely follow is there unseen and unread, only to
+    // hold its room, so the card does not jump when the reply arrives.
+    $('note').innerHTML = saving ? '<span class="now">Saving your answer...</span><span class="room" aria-hidden="true">' + words + '</span>' : words;
+    $('note').className = saving ? 'note pending' : 'note';
+    $('change').hidden = later;
+    $('reopened').hidden = !later;
+    $('foot').textContent = name === 'claim' ? 'Benzabet Ultimate ' + String.fromCharCode(8226) + ' 1,000 VIP spots' : 'Benzabet Ultimate';   // 8226 is the round dot
+    only('answered');
+    if (saving) $('card').className = 'card saving';
+    tick(true);
+  }
 
   // Once an answer has been saved, the private token is taken out of the address (see forget).
   // A tab reopened or reloaded later then shows the thank-you again without sending anything,
   // so an old tab can never overwrite a newer answer.
-  if (params.get('done') === '1' && known(action)) { thanks(action); return; }
+  if (params.get('done') === '1' && known(action)) {
+    var shown = params.get('s');
+    thanks(action, shown === 'spot' || shown === 'wait' ? shown : '', true);
+    return;
+  }
 
   if (!/^[0-9a-f]{32}$/.test(token)) {
-    if (known(action) || action === 'unsub') show('This link is incomplete.', 'Please press the button in the email again.');
+    if (known(action) || action === 'unsub') plain('This link is incomplete.', 'Please press the button in the email again.');
     return;
   }
 
   // Sent without cookies, so it works the same whether or not the player is signed in to Google.
+  // "readable" asks the sheet for a reply this page is allowed to read. "byHand" tells the
+  // sheet that a person chose this answer on the page, so it is not taken for a mail scanner.
+  function post(what, readable, byHand) {
+    var request = { method: 'POST', mode: readable ? 'cors' : 'no-cors', credentials: 'omit', cache: 'no-store', keepalive: true, body: 'r=1' };
+    // A request that hangs (a weak signal, a network that swallows it) is given up after 40
+    // seconds, so the tries below go on and nobody is left waiting without end.
+    var timer = 0;
+    if (typeof AbortController === 'function') {
+      var stop = new AbortController();
+      request.signal = stop.signal;
+      timer = setTimeout(function () { stop.abort(); }, 40000);
+    }
+    var sent = fetch(RECORD_URL + '?t=' + token + '&a=' + what + (readable ? '&r=1' : '') + (byHand ? '&m=1' : ''), request);
+    if (timer) sent.then(function () { clearTimeout(timer); }, function () { clearTimeout(timer); });
+    return sent;
+  }
+
+  // Unsubscribing is sent the plain way: there is no reply to read, and it is tried again for
+  // about 47 seconds when the connection fails.
   function record(what, attempt, onSaved, onFailed) {
-    fetch(RECORD_URL + '?t=' + token + '&a=' + what, {
-      method: 'POST', mode: 'no-cors', credentials: 'omit', cache: 'no-store', keepalive: true, body: 'r=1'
-    }).then(function () {
+    post(what, false).then(function () {
       if (onSaved) onSaved();
     }, function () {
       if (attempt < WAITS.length) setTimeout(function () { record(what, attempt + 1, onSaved, onFailed); }, WAITS[attempt]);
       else if (onFailed) onFailed();
     });
   }
-  function forget(what) {
-    try { history.replaceState(null, '', location.pathname + '?a=' + what + '&done=1'); } catch (e) { /* old browser: nothing to do */ }
+
+  // An answer is sent so that the reply can be read: the sheet says whether it was saved and,
+  // for a claim, whether the player has a spot or is on the waiting list. If the reply cannot
+  // be read, the answer is sent the plain way at once, which saves it without a reply. The
+  // sheet counts a press that arrives twice once. Tried again for about 47 seconds.
+  function save(what, attempt, onSaved, onFailed, byHand) {
+    function again() {
+      if (attempt < WAITS.length) setTimeout(function () { save(what, attempt + 1, onSaved, onFailed, byHand); }, WAITS[attempt]);
+      else onFailed();
+    }
+    post(what, true, byHand).then(function (reply) {
+      if (!reply.ok) { again(); return; }
+      reply.text().then(function (body) {
+        var said = /^(OK|NO)(?: (spot|wait|test))?\s*$/.exec(body);
+        if (!said) again();
+        else if (said[1] === 'NO') onFailed();                       // the sheet could not save it
+        else onSaved(said[2] === 'wait' ? 'wait' : said[2] ? 'spot' : '');
+      }, again);
+    }, function () {
+      // No reply that this page may read: no connection, or a browser that keeps it back.
+      post(what, false, byHand).then(function () { onSaved(''); }, again);
+    });
+  }
+
+  function forget(what, how) {
+    try { history.replaceState(null, '', location.pathname + '?a=' + what + '&done=1' + (how ? '&s=' + how : '')); } catch (e) { /* old browser: nothing to do */ }
+  }
+
+  function saved(name, how, byHand) {
+    if (name !== 'claim') how = '';   // only a claim has a spot or a place on the waiting list
+    busy = false; unsure = false; current = name; result = how; pending = '';
+    forget(name, how);
+    thanks(name, how, false);
+    say('Your answer is saved: ' + LABELS[name] + '.' +
+      (how === 'spot' ? ' Your spot is reserved.' : how === 'wait' ? ' You are on the priority waiting list.' : ''));
+    if (byHand) $('title').focus();
+  }
+
+  // The first save of this visit, a new try after it failed, and a fresh look after a change
+  // that could not be checked.
+  function start(name, byHand) {
+    busy = true;
+    thanks(name, 'saving', false);
+    if (byHand) { say('Saving your answer.'); $('title').focus(); }
+    save(name, 0, function (how) { saved(name, how, byHand); }, function () {
+      busy = false; pending = name;
+      heading('Your answer is not saved yet.');
+      $('text').textContent = 'We could not save it just now. Please try again.';
+      only('text', 'retry'); tick(false);
+      say('Your answer is not saved yet. Please try again.');
+      $('title').focus();
+    }, byHand);
   }
 
   // Mail security scanners open links without showing them to anyone. Record only once a
@@ -106,22 +382,76 @@ button:focus-visible{outline:3px solid #fff;outline-offset:4px}
     check();
   }
 
+  // "Change my answer" works only in the tab that saved the answer: the token is kept in this
+  // page's memory and nowhere else, so nothing is left behind once the tab is closed.
+  function openChooser() {
+    if (busy || !current) return;
+    heading('Change your answer');
+    $('choosernote').textContent = 'Choose your answer. Your latest choice is the one we keep.' +
+      (current === 'claim' ? ' Leaving Claim my spot gives up your place in line.' : '');
+    each(function (b) { b.disabled = false; b.setAttribute('aria-pressed', b.getAttribute('data-a') === current ? 'true' : 'false'); });
+    $('keep').hidden = false;
+    only('chooser');
+    openedAt = Date.now();
+    $('title').focus();
+  }
+  function closeChooser() {
+    if (busy || !current) return;
+    closedAt = Date.now();
+    // After a change that could not be saved or checked, the page does not trust its memory:
+    // the answer being kept is sent again, and the card shows what the sheet says.
+    if (unsure) { start(current, true); return; }
+    thanks(current, result, false);
+    $('title').focus();
+  }
+  function choose(name) {
+    if (busy || !known(name) || Date.now() - openedAt < 700) return;   // the second tap of a double tap must not choose an answer
+    if (name === current) { closeChooser(); return; }
+    busy = true;
+    each(function (b) { b.disabled = true; });
+    $('keep').hidden = true;
+    $('choosernote').textContent = 'Saving your answer...';
+    say('Saving your answer.');
+    save(name, 0, function (how) { saved(name, how, true); }, function () {
+      busy = false; unsure = true;
+      each(function (b) { b.disabled = false; });
+      $('keep').hidden = false;
+      $('choosernote').textContent = 'We could not save this just now. Please try again.';
+      say('We could not save the change. Please try again.');
+      $('title').focus();
+    }, true);
+  }
+
   if (known(action)) {
-    thanks(action);
-    whenSeen(function () { record(action, 0, function () { forget(action); }); });
+    thanks(action, 'saving', false);
+    whenSeen(function () { start(action, false); });
+    $('retrygo').addEventListener('click', function () { if (!busy && pending) start(pending, true); });
+    // The second press of a double click or double tap lands where the first one put a new
+    // link: it must not close the list that was just opened, or open it again.
+    $('change').addEventListener('click', function () { if (Date.now() - closedAt >= 700) openChooser(); });
+    $('keep').addEventListener('click', function () { if (Date.now() - openedAt >= 700) closeChooser(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('chooser').hidden) closeChooser(); });
+    each(function (b) { b.addEventListener('click', function () { choose(b.getAttribute('data-a')); }); });
   } else if (action === 'unsub') {
-    show('Unsubscribe?', 'Stop Benzabet Ultimate emails to this address.');
-    button.hidden = false;
-    button.addEventListener('click', function () {
-      button.hidden = true;
-      show('One moment...', '');
-      title.focus();
+    heading('Unsubscribe?');
+    $('text').textContent = 'Stop Benzabet Ultimate emails to this address.';
+    only('text', 'unsub'); tick(false);
+    $('pill').hidden = true; $('foot').textContent = 'Benzabet Ultimate';   // no promotion on an unsubscribe page
+    $('unsubgo').addEventListener('click', function () {
+      var button = $('unsubgo');
+      if (button.disabled) return;
+      button.disabled = true; button.textContent = 'Unsubscribing...';
+      heading('One moment...');
+      $('title').focus();
       record('unsub', 0, function () {
-        show('You are unsubscribed.', 'You will not get more Benzabet Ultimate emails at this address.');
-        title.focus();
+        heading('You are unsubscribed.');
+        $('text').textContent = 'You will not get more Benzabet Ultimate emails at this address.';
+        only('text'); tick(true);
+        $('title').focus();
       }, function () {
-        show('Unsubscribe?', 'We could not save this just now. Please try again.');
-        button.hidden = false;
+        heading('Unsubscribe?');
+        $('text').textContent = 'We could not save this just now. Please try again.';
+        button.disabled = false; button.textContent = 'Unsubscribe';
         button.focus();
       });
     });
