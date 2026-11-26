@@ -86,12 +86,14 @@ h1:focus{outline:none}
 .link:hover{color:var(--ink)}
 .link:focus-visible{outline:2px solid var(--cyan); outline-offset:2px; border-radius:6px}
 #keep::after{top:-6px}   /* its target stops at the bottom edge of the button above it */
-/* While an answer is on its way the card already has its final size: the tick and the
-   "Change my answer" line keep their place unseen, and the note holds the room its text needs. */
-.card.saving .mark,.card.saving #change{visibility:hidden}
-.note.pending{position:relative}
-.note .now{position:absolute; top:0; left:0; right:0}
-.note .room{visibility:hidden}
+/* While an answer is on its way the card already looks finished. Only "Change my answer" waits
+   unseen for the save, and a claim's last line holds its room until the sheet has said whether
+   it is a spot or the waiting list. */
+.card.saving #change{visibility:hidden}
+.note .room{display:block; visibility:hidden}
+.note .lead.wait{animation:wait 1.3s ease-in-out infinite}
+@keyframes wait{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){ .note .lead.wait{animation:none} }
 .options{display:grid; gap:10px; margin-top:18px}
 .option{
   min-height:48px; padding:8px 14px; border-radius:6px; cursor:pointer; font:inherit; font-size:16px; font-weight:700; line-height:1.2;
@@ -218,6 +220,9 @@ h1:focus{outline:none}
     // a claim made after the spots were taken
     wait: '<span class="lead">You are on the <b>priority waiting list</b></span><span class="offer">for ' + OFFER + '</span>' +
       'All 1,000 spots are taken for now. We will email you the moment one opens.',
+    // a claim on its way: the sheet has not yet said which of the two it is (a few seconds)
+    checking: '<span class="lead wait">Checking your spot...</span><span class="offer">' + OFFER + '</span>' +
+      '<span class="room" aria-hidden="true">Watch your inbox: your private <b>VIP launch invite</b> is coming soon!</span>',
     // a claim that was saved, when the page could not learn which of the two it is
     claim: '<span class="lead">Your request is <b>recorded!</b></span><span class="offer">' + OFFER + '</span>' +
       'Watch your inbox: your private <b>VIP launch update</b> is coming soon!',
@@ -259,14 +264,14 @@ h1:focus{outline:none}
   // or '' for a saved answer. "later" is a tab opened again after the answer was saved.
   function thanks(name, how, later) {
     var saving = how === 'saving';
-    var words = name !== 'claim' ? NOTES[name === 'maybe' && later ? 'maybeLater' : name]
-      : NOTES[how === 'spot' || how === 'wait' ? how : saving ? 'spot' : 'claim'];
     heading('Thank you for answering.');
     $('picked').textContent = LABELS[name];
-    // While saving, the text that will most likely follow is there unseen and unread, only to
-    // hold its room, so the card does not jump when the reply arrives.
-    $('note').innerHTML = saving ? '<span class="now">Saving your answer...</span><span class="room" aria-hidden="true">' + words + '</span>' : words;
-    $('note').className = saving ? 'note pending' : 'note';
+    // The sheet takes a few seconds to answer, and nobody is made to watch that: the card is
+    // drawn finished at once. A Maybe or a No reads the same whatever the sheet says. A claim
+    // shows "Checking your spot..." until the sheet has said: a spot, or the waiting list.
+    // If the answer cannot be saved after all, the "not saved yet" card takes this one's place.
+    $('note').innerHTML = name !== 'claim' ? NOTES[name === 'maybe' && later ? 'maybeLater' : name]
+      : NOTES[how === 'spot' || how === 'wait' ? how : saving ? 'checking' : 'claim'];
     $('change').hidden = later;
     $('reopened').hidden = !later;
     $('foot').textContent = name === 'claim' ? 'Benzabet Ultimate ' + String.fromCharCode(8226) + ' 1,000 VIP spots' : 'Benzabet Ultimate';   // 8226 is the round dot
@@ -399,16 +404,18 @@ h1:focus{outline:none}
 
   // "Change my answer" works only in the tab that saved the answer: the token is kept in this
   // page's memory and nowhere else, so nothing is left behind once the tab is closed.
-  function openChooser() {
-    if (busy || !current) return;
+  function showChooser(words) {
     heading('Change your answer');
-    $('choosernote').textContent = 'Choose your answer. Your latest choice is the one we keep.' +
-      (current === 'claim' ? ' Leaving Claim my spot gives up your place in line.' : '');
-    each(function (b) { b.disabled = false; b.setAttribute('aria-pressed', b.getAttribute('data-a') === current ? 'true' : 'false'); });
-    $('keep').hidden = false;
+    $('choosernote').textContent = words;
+    each(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-a') === current ? 'true' : 'false'); });
     only('chooser');
     openedAt = Date.now();
     $('title').focus();
+  }
+  function openChooser() {
+    if (busy || !current) return;
+    showChooser('Choose your answer. Your latest choice is the one we keep.' +
+      (current === 'claim' ? ' Leaving Claim my spot gives up your place in line.' : ''));
   }
   function closeChooser() {
     if (busy || !current) return;
@@ -426,18 +433,15 @@ h1:focus{outline:none}
     if (Date.now() - openedAt < 700) return;   // the second tap of a double tap must not choose an answer
     if (name === current) { closeChooser(); return; }
     busy = true;
-    each(function (b) { b.disabled = true; });
-    $('keep').hidden = true;
-    $('choosernote').textContent = 'Saving your answer...';
+    // The card for the new answer is drawn at once; if it cannot be saved, the list comes back.
+    thanks(name, 'saving', false);
     say('Saving your answer.');
+    $('title').focus();
     save(name, 0, function (how) { saved(name, how, true); }, function () {
       busy = false; unsure = true;
       forget(current, 'check');   // until a save goes through, a reload of this tab vouches for nothing
-      each(function (b) { b.disabled = false; });
-      $('keep').hidden = false;
-      $('choosernote').textContent = 'We could not save this just now. Please try again.';
+      showChooser('We could not save this just now. Please try again.');
       say('We could not save the change. Please try again.');
-      $('title').focus();
     }, true);
   }
 
