@@ -207,7 +207,7 @@ h1:focus{outline:none}
   var RECORD_URL = 'https://script.google.com/macros/s/AKfycbxUNRhIGC0sv59LzfFwYGaQBRSEH0HBKqqA6Xyf7wePKTnGXrUMwQQiDKWpfW4Khdml/exec';
   var LABELS = { claim: 'Claim my spot', maybe: 'Maybe', no: 'No' };
   var WAITS = [1500, 3000, 6000, 12000, 24000];
-  var LIMIT = 90000;       // a request with no answer after this long is given up: longer than the sheet's script holds one
+  var LIMIT = 105000;      // a request with no answer after this long is given up: longer than the sheet's script holds one
   var PATIENCE = 120000;   // and no new try is started once a save has taken this long
   // Fixed wording, written here: never anything typed by a visitor or taken from the address.
   var OFFER = '<b class="hi">40% Total Rakeback</b> per month';
@@ -296,9 +296,9 @@ h1:focus{outline:none}
   // sheet that a person chose this answer on the page, so it is not taken for a mail scanner.
   function post(what, readable, byHand) {
     var request = { method: 'POST', mode: readable ? 'cors' : 'no-cors', credentials: 'omit', cache: 'no-store', keepalive: true, body: 'r=1' };
-    // A request that hangs (a weak signal, a network that swallows it) is given up after a
-    // minute and a half, so nobody is left waiting without end. That is longer than the
-    // sheet's script ever holds a request: once the page lets go, the script is done with it.
+    // A request that hangs (a weak signal, a network that swallows it) is given up after 105
+    // seconds, so nobody is left waiting without end. The sheet's script waits at most 75
+    // seconds for its turn, so by the time the page lets go the script is done with the request.
     var timer = 0;
     if (typeof AbortController === 'function') {
       var stop = new AbortController();
@@ -328,7 +328,8 @@ h1:focus{outline:none}
   // An answer is sent so that the reply can be read: the sheet says whether it was saved and,
   // for a claim, whether the player has a spot or is on the waiting list. If the reply cannot
   // be read, the answer is sent the plain way at once, which saves it without a reply. The
-  // sheet counts a press that arrives twice once. Tried again for about 47 seconds.
+  // sheet counts a press that arrives twice once. A connection that fails at once is tried
+  // again for about 47 seconds; one that only hangs is given up after three and a half minutes.
   function save(what, attempt, onSaved, onFailed, byHand, since) {
     since = since || Date.now();
     function again() {
