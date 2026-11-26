@@ -87,8 +87,8 @@ h1:focus{outline:none}
 .link:focus-visible{outline:2px solid var(--cyan); outline-offset:2px; border-radius:6px}
 #keep::after{top:-6px}   /* its target stops at the bottom edge of the button above it */
 /* While an answer is on its way the card already looks finished. Only "Change my answer" waits
-   unseen for the save, and a claim's last line holds its room until the sheet has said whether
-   it is a spot or the waiting list. */
+   unseen for the save, and a claim's last line holds its room during its one second of
+   "Checking your spot...". */
 .card.saving #change{visibility:hidden}
 .note .room{display:block; visibility:hidden}
 .note .lead.wait{animation:wait 1.3s ease-in-out infinite}
@@ -214,18 +214,12 @@ h1:focus{outline:none}
   // Fixed wording, written here: never anything typed by a visitor or taken from the address.
   var OFFER = '<b class="hi">40% Total Rakeback</b> per month';
   var NOTES = {
-    // a claim that got one of the spots
+    // a claim: every claim reads like this (the owner, 25 Nov 2026: "if we get more than 1000, I dont care")
     spot: '<span class="lead">Your spot is <b>reserved!</b></span><span class="offer">' + OFFER + '</span>' +
       'Watch your inbox: your private <b>VIP launch invite</b> is coming soon!',
-    // a claim made after the spots were taken
-    wait: '<span class="lead">You are on the <b>priority waiting list</b></span><span class="offer">for ' + OFFER + '</span>' +
-      'All 1,000 spots are taken for now. We will email you the moment one opens.',
-    // a claim on its way: the sheet has not yet said which of the two it is (a few seconds)
+    // a claim in its first second (the owner: "we can have the loading check for 1 second")
     checking: '<span class="lead wait">Checking your spot...</span><span class="offer">' + OFFER + '</span>' +
       '<span class="room" aria-hidden="true">Watch your inbox: your private <b>VIP launch invite</b> is coming soon!</span>',
-    // a claim that was saved, when the page could not learn which of the two it is
-    claim: '<span class="lead">Your request is <b>recorded!</b></span><span class="offer">' + OFFER + '</span>' +
-      'Watch your inbox: your private <b>VIP launch update</b> is coming soon!',
     maybe: 'Noted. No spot is held for you yet. You can still switch to <b>Claim my spot</b>, here or in your email.',
     maybeLater: 'Noted. No spot is held for you yet. You can still switch to <b>Claim my spot</b> with the button in your email.',
     no: 'Understood. No spot is held for you. Thank you for letting us know.'
@@ -240,7 +234,11 @@ h1:focus{outline:none}
   var options = document.querySelectorAll('.option[data-a]');
 
   var current = '';    // the answer the sheet holds, as far as this page knows
-  var result = '';     // for a claim: 'spot', 'wait', or '' when the page could not learn it
+  var told = false;    // the one-second check of a claim is over: its card says "reserved"
+  var tell = 0;        // the timer that ends that second
+  var doubt = 0;       // the timer that takes "reserved" back when the sheet stays silent
+  var drawnAt = 0;     // when the card of the answer now on its way was first drawn
+  var onRetry = null;  // called when a try of the save now on its way has failed
   var pending = '';    // the answer that could not be saved and can be tried again
   var busy = false;    // one save at a time
   var unsure = false;  // a change could not be saved or checked, so what the sheet holds is not known
@@ -260,18 +258,19 @@ h1:focus{outline:none}
   function each(run) { Array.prototype.forEach.call(options, run); }
   function plain(title, line) { heading(title); $('text').textContent = line; only('text'); tick(false); }
 
-  // The thank-you card. "how" is 'saving' while the answer is on its way, then 'spot', 'wait'
-  // or '' for a saved answer. "later" is a tab opened again after the answer was saved.
+  // The thank-you card. "how" is 'saving' while the answer is on its way, 'saved' after that.
+  // "later" is a tab opened again after the answer was saved.
   function thanks(name, how, later) {
     var saving = how === 'saving';
     heading('Thank you for answering.');
     $('picked').textContent = LABELS[name];
     // The sheet takes a few seconds to answer, and nobody is made to watch that: the card is
-    // drawn finished at once. A Maybe or a No reads the same whatever the sheet says. A claim
-    // shows "Checking your spot..." until the sheet has said: a spot, or the waiting list.
-    // If the answer cannot be saved after all, the "not saved yet" card takes this one's place.
+    // drawn finished at once. A claim shows "Checking your spot..." for one second and then
+    // "Your spot is reserved!", for every claim: the sheet still notes which claims came after
+    // the first 1,000, but the page does not tell them apart. If the answer cannot be saved
+    // after all, the "not saved yet" card takes this one's place.
     $('note').innerHTML = name !== 'claim' ? NOTES[name === 'maybe' && later ? 'maybeLater' : name]
-      : NOTES[how === 'spot' || how === 'wait' ? how : saving ? 'checking' : 'claim'];
+      : NOTES[saving && !told ? 'checking' : 'spot'];
     $('change').hidden = later;
     $('reopened').hidden = !later;
     $('foot').textContent = name === 'claim' ? 'Benzabet Ultimate ' + String.fromCharCode(8226) + ' 1,000 VIP spots' : 'Benzabet Ultimate';   // 8226 is the round dot
@@ -287,7 +286,7 @@ h1:focus{outline:none}
     var shown = params.get('s');
     // s=check: this tab last tried a change that could not be checked, so it vouches for nothing.
     if (shown === 'check') plain('Please answer again.', 'We could not check your last change. Please press the button in your invitation email again.');
-    else thanks(action, shown === 'spot' || shown === 'wait' ? shown : '', true);
+    else thanks(action, 'saved', true);
     return;
   }
 
@@ -330,14 +329,15 @@ h1:focus{outline:none}
     });
   }
 
-  // An answer is sent so that the reply can be read: the sheet says whether it was saved and,
-  // for a claim, whether the player has a spot or is on the waiting list. If the reply cannot
+  // An answer is sent so that the reply can be read: the sheet says whether it was saved (OK
+  // or NO; what it adds about the first 1,000 spots is not used by the page). If the reply cannot
   // be read, the answer is sent the plain way at once, which saves it without a reply. The
   // sheet counts a press that arrives twice once. A connection that fails at once is tried
   // again for about 47 seconds; one that only hangs is given up after three and a half minutes.
   function save(what, attempt, onSaved, onFailed, byHand, since) {
     since = since || Date.now();
     function again() {
+      if (onRetry) onRetry();
       if (attempt < WAITS.length && Date.now() - since < PATIENCE) setTimeout(function () { save(what, attempt + 1, onSaved, onFailed, byHand, since); }, WAITS[attempt]);
       else onFailed();
     }
@@ -349,11 +349,12 @@ h1:focus{outline:none}
         var said = /^(OK|NO)(?: (spot|wait|test))?\s*$/.exec(body);
         if (!said) again();
         else if (said[1] === 'NO') onFailed();                       // the sheet could not save it
-        else onSaved(said[2] === 'wait' ? 'wait' : said[2] ? 'spot' : '');
+        else onSaved();
       }, function () { asked.end(); again(); });
     }, function () {
       // No reply that this page may read: no connection, or a browser that keeps it back.
-      post(what, false, byHand).reply.then(function () { onSaved(''); }, again);
+      if (onRetry) onRetry();
+      post(what, false, byHand).reply.then(function () { onSaved(); }, again);
     });
   }
 
@@ -361,24 +362,48 @@ h1:focus{outline:none}
     try { history.replaceState(null, '', location.pathname + '?a=' + what + '&done=1' + (how ? '&s=' + how : '')); } catch (e) { /* old browser: nothing to do */ }
   }
 
-  function saved(name, how, byHand) {
-    if (name !== 'claim') how = '';   // only a claim has a spot or a place on the waiting list
-    busy = false; unsure = false; checking = false; current = name; result = how; pending = '';
-    forget(name, how);
-    thanks(name, how, false);
-    say('Your answer is saved: ' + LABELS[name] + '.' +
-      (how === 'spot' ? ' Your spot is reserved.' : how === 'wait' ? ' You are on the priority waiting list.' : ''));
+  // Draws the card of an answer on its way. A claim shows "Checking your spot..." for one
+  // second, counted from when its card was first drawn, and then says "reserved". If a try
+  // fails meanwhile (no connection), the card goes back to checking until the claim is really in.
+  function begin(name) {
+    busy = true; told = false;
+    if (!drawnAt) drawnAt = Date.now();
+    clearTimeout(tell); clearTimeout(doubt); tell = doubt = 0;
+    thanks(name, 'saving', false);
+    // "Reserved" is said ahead of the sheet's word, so it is taken back at the first sign of
+    // trouble (a try that failed) and after 20 seconds without that word: the card then shows
+    // "Checking your spot..." again until the claim is really in.
+    function back() {
+      clearTimeout(tell); clearTimeout(doubt); tell = doubt = 0; onRetry = null;
+      if (told) { told = false; if (busy) thanks(name, 'saving', false); }
+    }
+    onRetry = back;
+    if (name === 'claim') {
+      tell = setTimeout(function () {
+        tell = 0;
+        if (busy) { told = true; thanks(name, 'saving', false); }
+      }, Math.max(0, 1000 - (Date.now() - drawnAt)));
+      doubt = setTimeout(back, 20000);
+    }
+  }
+  function settle() { clearTimeout(tell); clearTimeout(doubt); tell = doubt = 0; onRetry = null; drawnAt = 0; busy = false; told = false; }
+
+  function saved(name, byHand) {
+    settle();
+    unsure = false; checking = false; current = name; pending = '';
+    forget(name, '');
+    thanks(name, 'saved', false);
+    say('Your answer is saved: ' + LABELS[name] + '.' + (name === 'claim' ? ' Your spot is reserved.' : ''));
     if (byHand) $('title').focus();
   }
 
   // The first save of this visit, a new try after it failed, and a fresh look after a change
   // that could not be checked.
   function start(name, byHand) {
-    busy = true;
-    thanks(name, 'saving', false);
+    begin(name);
     if (byHand) { say('Saving your answer.'); $('title').focus(); }
-    save(name, 0, function (how) { saved(name, how, byHand); }, function () {
-      busy = false; pending = name;
+    save(name, 0, function () { saved(name, byHand); }, function () {
+      settle(); pending = name;
       // A kept answer was saved earlier; here only the look at the sheet failed.
       heading(checking ? 'We could not check your answer.' : 'Your answer is not saved yet.');
       $('text').textContent = checking ? 'We could not reach the list just now. Please try again.' : 'We could not save it just now. Please try again.';
@@ -423,7 +448,7 @@ h1:focus{outline:none}
     // After a change that could not be saved or checked, the page does not trust its memory:
     // the answer being kept is sent again, and the card shows what the sheet says.
     if (unsure) { checking = true; start(current, true); return; }
-    thanks(current, result, false);
+    thanks(current, 'saved', false);
     $('title').focus();
   }
   function choose(name) {
@@ -432,13 +457,12 @@ h1:focus{outline:none}
     if (busy || !current || $('chooser').hidden || !known(name)) return;
     if (Date.now() - openedAt < 700) return;   // the second tap of a double tap must not choose an answer
     if (name === current) { closeChooser(); return; }
-    busy = true;
     // The card for the new answer is drawn at once; if it cannot be saved, the list comes back.
-    thanks(name, 'saving', false);
+    begin(name);
     say('Saving your answer.');
     $('title').focus();
-    save(name, 0, function (how) { saved(name, how, true); }, function () {
-      busy = false; unsure = true;
+    save(name, 0, function () { saved(name, true); }, function () {
+      settle(); unsure = true;
       forget(current, 'check');   // until a save goes through, a reload of this tab vouches for nothing
       showChooser('We could not save this just now. Please try again.');
       say('We could not save the change. Please try again.');
@@ -446,6 +470,7 @@ h1:focus{outline:none}
   }
 
   if (known(action)) {
+    drawnAt = Date.now();
     thanks(action, 'saving', false);
     whenSeen(function () { start(action, false); });
     $('retrygo').addEventListener('click', function () { if (!busy && pending) start(pending, true); });
